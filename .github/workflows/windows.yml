@@ -1,0 +1,30 @@
+name: build for windows
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          choco install make mingw --version 8.2.0
+          choco install git python ninja
+          choco install mingw-w64-x86_64-glib2
+          choco install mingw-w64-x86_64-pixman
+          choco install mingw-w64-x86_64-SDL2
+
+      - name: Build QEMU
+        run: |
+          mkdir build
+          cd build
+          ./configure --enable-sdl --disable-cocoa --target-list=arm-softmmu --disable-capstone --disable-slirp --disable-pie --extra-cflags=-I/mingw64/include/openssl --extra-ldflags='-L/mingw64/lib -lcrypto' --disable-stack-protector --disable-werror
+          make
